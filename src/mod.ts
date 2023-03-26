@@ -2,14 +2,17 @@ import {
   dirname,
   DOMParser,
   Element,
-  flags_parse,
   HTMLDocument,
   Node,
   urlJoin,
   urlParse,
 } from "./deps.ts";
 
-async function create_link_list(url: string, delimiter: string) {
+export async function create_link_list(
+  url: string,
+  delimiter: string,
+  all: boolean,
+) {
   await fetch(url)
     .then((res) => {
       if (res.status >= 400) {
@@ -35,7 +38,8 @@ async function create_link_list(url: string, delimiter: string) {
           "text/html",
         );
         if (document !== null) {
-          const elements = new Map(
+          const url_base = urlParse(url);
+          new Map(
             Array.from(document.querySelectorAll("body a"))
               .filter((n: Node) => n instanceof Element)
               .map((n: Node) => <Element> n)
@@ -50,25 +54,30 @@ async function create_link_list(url: string, delimiter: string) {
                 !(e.attributes[0].value.match(/^javascript:*/))
               )
               .map((e: Element) => [e.attributes[0].value, e]),
-          );
-          const url_base = urlParse(url);
-          elements.forEach((e) => {
-            const href = e.attributes[0].value.trim().replace(
-              /[\n\r]/,
-              "",
-            );
-            let link;
-            if (href.match(/^[^:]*:/)) {
-              link = href;
-            } else if (href.match(/^\//)) {
-              link = urlJoin(url_base.origin, href);
-            } else {
-              link = urlJoin(url_base.origin, dirname(url_base.pathname), href);
-            }
-            console.log(
-              link + delimiter + e.textContent.trim(),
-            );
-          });
+          )
+            .forEach((e) => {
+              const href = e.attributes[0].value.trim().replace(
+                /[\n\r]/,
+                "",
+              );
+              let link;
+              if (href.match(/^[^:]*:/)) {
+                link = href;
+              } else if (href.match(/^\//)) {
+                link = urlJoin(url_base.origin, href);
+              } else {
+                link = urlJoin(
+                  url_base.origin,
+                  dirname(url_base.pathname),
+                  href,
+                );
+              }
+              if (all || link.startsWith(url_base.origin)) {
+                console.log(
+                  link + delimiter + e.textContent.trim(),
+                );
+              }
+            });
         }
       }
     })
@@ -78,13 +87,3 @@ async function create_link_list(url: string, delimiter: string) {
     });
   return 0;
 }
-
-const flags = flags_parse(Deno.args, {
-  //boolean: ["help"],
-  string: ["delimiter"],
-  default: { delimiter: " " },
-});
-
-flags._.forEach((url) => {
-  create_link_list(<string> url, flags.delimiter);
-});
