@@ -21,11 +21,21 @@ export async function create_link_list(
       const content_type = res.headers.get("Content-type");
       if (content_type) {
         const content_type_array = content_type.split(";");
+        if (content_type_array.length < 1) {
+          throw "No content-type";
+        }
         const mime_type = content_type_array[0].trim().toLowerCase();
-        const charset = content_type_array[1].split("=")[1].trim()
-          .toLowerCase();
-        if (mime_type !== "text/html" || charset !== "utf-8") {
+        if (mime_type !== "text/html") {
           throw "Unexpected content-type: " + content_type;
+        }
+        if (content_type_array.length < 2) {
+          console.warn("No mime type; assume utf-8");
+        } else {
+          const charset = content_type_array[1].split("=")[1].trim()
+            .toLowerCase();
+          if (charset !== "utf-8") {
+            throw "Unexpected content-type: " + content_type;
+          }
         }
         return res.text();
       }
