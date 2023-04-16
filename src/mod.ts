@@ -49,43 +49,39 @@ export async function create_link_list(
         );
         if (document !== null) {
           const url_base = urlParse(url);
-          new Map(
-            Array.from(document.querySelectorAll("body a"))
-              .filter((n: Node) => n instanceof Element)
-              .map((n: Node) => <Element> n)
-              .filter((e: Element) => e.textContent.length > 0)
-              .filter((e: Element) => e.attributes[0].nodeName == "href")
-              .filter((e: Element) => e.attributes[0].value.match(/^[^#].*/))
-              .filter((e: Element) => !(e.attributes[0].value.match(/^tel:*/)))
-              .filter((e: Element) =>
-                !(e.attributes[0].value.match(/^mailto:*/))
-              )
-              .filter((e: Element) =>
-                !(e.attributes[0].value.match(/^javascript:*/))
-              )
-              .map((e: Element) => [e.attributes[0].value, e]),
-          )
-            .forEach((e) => {
-              const href = e.attributes[0].value.trim().replace(
-                /[\n\r]/,
-                "",
-              );
-              let link;
-              if (href.match(/^[^:]*:/)) {
-                link = href;
-              } else if (href.match(/^\//)) {
-                link = urlJoin(url_base.origin, href);
-              } else {
-                link = urlJoin(
-                  url_base.origin,
-                  dirname(url_base.pathname),
-                  href,
-                );
-              }
-              if (all || link.startsWith(url_base.origin)) {
-                console.log(
-                  link + delimiter + e.textContent.trim(),
-                );
+          Array.from(document.querySelectorAll("body a"))
+            .filter((n: Node) => n instanceof Element)
+            .map((n: Node) => <Element> n)
+            .filter((e: Element) => e.textContent.length > 0)
+            .forEach((e: Element) => {
+              for (const a of e.attributes) {
+                if (
+                  a.nodeName == "href" &&
+                  a.value.match(/^[^#].*/) &&
+                  !a.value.match(/^tel:*/) &&
+                  !(a.value.match(/^mailto:*/)) &&
+                  !(a.value.match(/^javascript:*/))
+                ) {
+                  const name = e.textContent.trim();
+                  const href = a.value.trim().replace(/[\n\r]/, "");
+                  let url;
+                  if (href.match(/^[^:]*:/)) {
+                    url = href;
+                  } else if (href.match(/^\//)) {
+                    url = urlJoin(url_base.origin, href);
+                  } else {
+                    url = urlJoin(
+                      url_base.origin,
+                      dirname(url_base.pathname),
+                      href,
+                    );
+                  }
+                  if (all || url.startsWith(url_base.origin)) {
+                    console.log(
+                      url + delimiter + name,
+                    );
+                  }
+                }
               }
             });
         }

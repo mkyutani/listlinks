@@ -8,11 +8,9 @@ await new Command()
   .option("-d, --delimiter <delimiter:string>", "Delimiter", {
     default: " ",
   })
-  .option("-A, --all [all:boolean]", "List all including external sites", {
-    default: false,
-  })
+  .option("-A, --all", "List all including external sites")
   .arguments("<url:string>")
-  .action(async (option, url) =>
-    await create_link_list(url, option.delimiter, option.all)
-  )
+  .action(async (options, ...args) => {
+    await create_link_list(args[0], options.delimiter, options.all ?? false);
+  })
   .parse(Deno.args);
