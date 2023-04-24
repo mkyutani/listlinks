@@ -67,6 +67,8 @@ export async function create_link_list(
                   let url;
                   if (href.match(/^[^:]*:/)) {
                     url = href;
+                  } else if (href.match(/^\/\//)) {
+                    url = url_base.protocol + href;
                   } else if (href.match(/^\//)) {
                     url = urlJoin(url_base.origin, href);
                   } else {
