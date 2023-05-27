@@ -49,6 +49,12 @@ export async function create_link_list(
         );
         if (document !== null) {
           const url_base = urlParse(url);
+          let url_dir: string;
+          if (url.endsWith("/")) {
+            url_dir = url_base.pathname;
+          } else {
+            url_dir = dirname(url_base.pathname);
+          }
           Array.from(document.querySelectorAll("body a"))
             .filter((n: Node) => n instanceof Element)
             .map((n: Node) => <Element> n)
@@ -64,23 +70,23 @@ export async function create_link_list(
                 ) {
                   const name = e.textContent.trim();
                   const href = a.value.trim().replace(/[\n\r]/, "");
-                  let url;
+                  let link: string;
                   if (href.match(/^[^:]*:/)) {
-                    url = href;
+                    link = href;
                   } else if (href.match(/^\/\//)) {
-                    url = url_base.protocol + href;
+                    link = url_base.protocol + href;
                   } else if (href.match(/^\//)) {
-                    url = urlJoin(url_base.origin, href);
+                    link = urlJoin(url_base.origin, href);
                   } else {
-                    url = urlJoin(
+                    link = urlJoin(
                       url_base.origin,
-                      dirname(url_base.pathname),
+                      url_dir,
                       href,
                     );
                   }
-                  if (all || url.startsWith(url_base.origin)) {
+                  if (all || link.startsWith(url_base.origin)) {
                     console.log(
-                      url + delimiter + name,
+                      link + delimiter + name,
                     );
                   }
                 }
