@@ -16,7 +16,7 @@ export async function create_link_list(
   try {
     const res = await fetch(url);
     if (res.status >= 400) {
-      throw res.status;
+      throw new Error(`Failed to fetch: ${res.status}`);
     }
 
     const content_type = res.headers.get("Content-type");
@@ -79,7 +79,7 @@ export async function create_link_list(
         }
       });
   } catch (reason) {
-    console.error(reason);
+    console.error(reason.message);
     return 1;
   }
   return 0;
