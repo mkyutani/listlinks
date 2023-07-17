@@ -29,7 +29,9 @@ export async function create_link_list(
     }
     const charset = content_type.split(";")[1]?.split("=")[1]?.trim()
       .toLowerCase();
-    if (charset && charset !== "utf-8") {
+    if (!charset) {
+      console.warn(`No charset: ${content_type}; assume utf-8`);
+    } else if (charset !== "utf-8") {
       throw new Error(`Unexpected charset: ${content_type}`);
     }
 
